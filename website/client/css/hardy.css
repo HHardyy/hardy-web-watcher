@@ -1,4 +1,21 @@
 .container{
-  line-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.title {
+  height: 100px;
+  line-height: 100px;
   text-align: center;
+}
+.img-container {
+  padding: 0 30px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+.img-container .img{
+  flex: 1;
+  width: 80vw;
+  height: 40vh;
+  margin-bottom: 20px;
 }
