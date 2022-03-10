@@ -7,15 +7,15 @@
    * @Author: 小方块 
    * @Date: 2022-03-07 02:02:35 
    * @Last Modified by: 小方块
-   * @Last Modified time: 2022-03-10 15:52:49
+   * @Last Modified time: 2022-03-10 16:23:50
    * 
    * 页面性能
   */
   var perf = {
     init: (cb) => {
-      cb();
-
       let isDOMReady = false;
+      let isOnload = false;
+      let cycleTime = 100;
 
       const Util = {
         _getPerformanceTiming: () => {
@@ -58,33 +58,62 @@
               isDOMReady = true;
               callback(document.readyState);
             } else {  // 一直监测 
-              timer = setTimeout(_runCheck, 100);
+              timer = setTimeout(_runCheck, cycleTime);
             }
           };
-          document.addEventListener('readystatechange', () => {
-            if (document.readyState === 'interactive') {
-              if (typeof callback === 'function') callback(document.readyState);
-              return void 0
-            }
-          });
+          // document.addEventListener('readystatechange', () => {
+          //   if (document.readyState === 'interactive') {
+          //     if (typeof callback === 'function') callback(document.readyState)
+          //     return void 0
+          //   }
+          // })
           document.addEventListener('DOMContentLoaded', () => {
             _runCheck();
             return void 0
           });
         },
 
-        _onLoad: () => { },
+        _onLoad: (callback) => {
+          if (isOnload === true) return void 0
+          let timer = null;
+
+          const _runCheck = () => {
+            if (Util._getPerformanceTiming().loadEventEnd) {
+              clearTimeout(timer);
+              isOnload = true;
+              callback(document.readyState);
+            } else {
+              timer = setTimeout(_runCheck, cycleTime);
+            }
+          };
+          // document.addEventListener('readystatechange', () => {
+          //   if (document.readyState === 'interactive') {
+          //     if (typeof callback === 'function') callback(document.readyState)
+          //     return void 0
+          //   }
+          // })
+          window.addEventListener('load', () => {
+            _runCheck();
+            return void 0
+          });
+        },
       };
 
       Util._domReady((state) => {
         let perfData = Util._getPerfData(Util._getPerformanceTiming());
-        console.log(`${state}阶段监控数据: `, perfData);
+        perfData.type = 'domready';
+        cb(perfData);
+      });
+      Util._onLoad((state) => {
+        let perfData = Util._getPerfData(Util._getPerformanceTiming());
+        perfData.type = 'onload';
+        cb(perfData);
       });
     }
   };
 
-  perf.init(() => {
-    console.log('perf init');
+  perf.init((perfData) => {
+    console.log('perf: ', perfData);
   });
 
 }));
