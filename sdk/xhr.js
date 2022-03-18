@@ -49,6 +49,38 @@ export default {
       this.addEventListener('error', asioxEnd('error'), false)
       this.addEventListener('abort', asioxEnd('abort'), false)
       return _originSend.apply(this, arguments)
+    } 
+
+    // fetch
+    if (window.fetch) {
+      let _origin_fetch = window.fetch
+      window.fetch = function () {
+        let _stime = Date.now()
+        let _args = [].slice.call(arguments)
+
+        let fetchInput = _args[0]
+        let method = 'GET'
+        let url = null
+
+        if (typeof fetchInput === 'string') {
+          url = fetchInput
+        } else if ('Request' in window && fetchInput instanceof window.Request) {
+          url = fetchInput.url
+          method = fetchInput.method ? fetchInput.method : method
+        } else {
+          url = '' + fetchInput      
+        }
+
+        let _fetchData = { method, url, status: null }
+
+        return _origin_fetch.apply(this, arguments).then(res => {
+          _fetchData.status = res.status
+          _fetchData.type = 'fetch'
+          _fetchData.duration = Date.now() - _stime
+          cb(_fetchData)
+          return res
+        })
+      }
     }
   }
 }

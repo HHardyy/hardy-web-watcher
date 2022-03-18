@@ -3,6 +3,18 @@ console.log('hello index.js');
 (function (w) {
   w.onload = function () {
     getData()
+
+    fetchData()
+
+    throw new Error('hardy error')
+  }
+
+  function fetchData() {
+    fetch('/api/list2').then(res => {
+      return res.json()
+    }).then(res => {
+      console.log('list2 res: ', res);
+    })
   }
 
   function getData() {
@@ -14,17 +26,7 @@ console.log('hello index.js');
     }).catch(err => {
       console.log('err: ', err);
     })
-
-    axios({
-      url: '/api/list2',
-      method: 'get'
-    }).then(res => {
-      console.log('list2 res: ', res);
-    }).catch(err => {
-      console.log('err: ', err);
-    })
   }
-
 
   function axios({ url, method, data }) {
     return new Promise((resolve, reject) => {
