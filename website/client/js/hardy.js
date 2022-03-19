@@ -6,7 +6,7 @@ console.log('hello index.js');
 
     fetchData()
 
-    throw new Error('hardy error')
+    // throw new Error('hardy error')  测试抓取报错的时候用
   }
 
   function fetchData() {
