@@ -5,66 +5,45 @@
 
   /*
    * @Author: 小方块 
-   * @Date: 2022-03-07 02:10:37 
+   * @Date: 2022-03-19 17:02:56 
    * @Last Modified by: 小方块
-   * @Last Modified time: 2022-03-18 14:39:55
+   * @Last Modified time: 2022-03-19 17:48:38
    * 
-   * 报错抓取
+   * 用户行为监控
    */
 
-  const formatError = (erroObj) => {
-    let _col = erroObj.column || erroObj.columnNumber;
-    let _row = erroObj.line || erroObj.lineNumber;
-    let _errType = erroObj.name;
-    let _msg = erroObj.message;
+  const getIdxLabel = (el) => {
+    let children = [].slice.call(el.parentNode.children).filter(c => c.tagName === el.tagName),
+      elIndex = null;
+    for (let i = 0, len = children.length; i < len; i++) {
+      if (el === children[i]) elIndex = i;
+    }
+    elIndex = `[${elIndex}]`;
+    let tagName = el.tagName.toLowerCase();
+    let label = tagName + elIndex;
+    return label
+  };
 
-    let { stack } = erroObj;
+  const getxPath = (el) => {
+    let current = el, xpath = '';
+    while (current !== document.body) {
+      xpath += getIdxLabel(current);
+      current = current.parentNode;
+    }
+    return xpath
+  };
 
-    if (stack) {
-      let _matchUrl = stack.match(/https?:\/\/[^\n]+/);
-      let _urlFirstStack = _matchUrl ? _matchUrl[0] : '';
-
-      // 真正的url
-      let _resourceUrl = '';
-      let _regUrlCheck = /https?:\/\/(\S)*\.js/;
-      if (_regUrlCheck.test(_urlFirstStack)) {
-        _resourceUrl = _urlFirstStack.match(_regUrlCheck)[0];
-      }
-
-      // 获取行列信息
-      let stackRow = null, stackCol = null, posStack = _urlFirstStack.match(/:(\d+):(\d+)/);
-      if (posStack && posStack.length >= 3) {
-        [, stackCol, stackRow] = posStack;
-      }
-      return {
-        content: stack,
-        col: Number(_col || stackCol),
-        row: Number(_row || stackRow),
-        errType: _errType,
-        message: _msg,
-        resourceUrl: _resourceUrl
-      }
+  var beh = {
+    init: (cb) => {
+      document.addEventListener('click', function (event) {
+        let target = event.target;
+        let xPath = target.tagName.toLowerCase() === 'html' ? 'html' : getxPath(target);
+        cb(xPath);
+      }, false);
     }
   };
 
-  var errCatch = {
-    init(cb) {
-      let _origin_error = window.onerror;
-
-      // 普通代码报错
-      window.onerror = function (message, source, lineno, colno, error) {
-        let errInfo = formatError(error);
-        errInfo._message = message;
-        errInfo._source = source;
-        errInfo._lineno = lineno;
-        errInfo._colno = colno;
-        errInfo.type = 'error';
-        cb(errInfo);
-        _origin_error && _origin_error.apply(window, arguments);
-      };
-    }
-  };
-
+  // 1、技术监控 
   // perf.init((perfData) => {
   //   console.log('页面性能监控: ', perfData);
   // })
@@ -77,8 +56,13 @@
   //   console.log('xhr || fetch 加载监控: ', xhrData);
   // })
 
-  errCatch.init((errData) => {
-    console.log('errData: ', errData);
+  // errCatch.init((errData) => {
+  //   console.log('errData: ', errData);
+  // })
+
+  // 2、用户行为监控
+  beh.init((clickPath) => {
+    console.log('user event:', clickPath);
   });
 
 }));
